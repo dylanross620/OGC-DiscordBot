@@ -115,6 +115,20 @@ async def on_command_error(ctx, error):
     # Not an unknown command error, so propogate the error
     raise error
 
+# Command to list the available commands for everyone
+@bot.command(name='commands', help='List all available commands')
+async def list_commands(ctx):
+    commands = '!join, !queue'
+    commands + = ''.join([f', !{cmd}' for cmd in custom_commands])
+    ctx.send(f"Current command options are: {commands}")
+
+# Command to list the available commands for admins
+@bot.command(name='admin_commands', help='List all admin commands')
+@commands.has_role('Admin')
+async def admin_commands(ctx):
+    commands = '!next, !new_command, !remove_command'
+    ctx.send(f{'Current admin command options are: {commands}'})
+
 # -------------- Start ---------------------------------
 
 bot.run(TOKEN)
