@@ -12,7 +12,7 @@ print('Loading token')
 with open('token.env', 'r') as f:
     TOKEN = f.readline().strip()
 
-assert(TOKEN != None, 'Error reading token from token.env file')
+assert TOKEN != None, 'Error reading token from token.env file'
 print('Successfully loaded token')
 
 # Initialize bot
@@ -35,7 +35,7 @@ except:
     print('Unable to load commands, creating new command dict')
     custom_commands = {}
 
-assert(custom_commands != None, 'Error initializing custom commands')
+assert custom_commands != None, 'Error initializing custom commands'
 
 # --------------- Bot Commands -------------------------
 
@@ -55,7 +55,7 @@ async def print_queue(ctx):
 
 # Command to get the next person in the queue. Can only be done by people with the Admin role
 @bot.command(name='next', help='Gets the next player in the queue. Can only be used by admins')
-@command.has_role('Admin')
+@commands.has_role('Admin')
 async def next_player(ctx):
     if game_queue.empty():
         ctx.send('The queue is empty')
@@ -66,7 +66,7 @@ async def next_player(ctx):
 # Command to add a new custom command, if it doesn't already exist.
 # Can only be done by people with the Admin role
 @bot.command(name='new_command', help='Add a new custom command. Usage: !new_command <command name> <command response>')
-@command.has_role('Admin')
+@commands.has_role('Admin')
 async def new_command(ctx, cmd_name: str, cmd_response: str):
     if cmd_name in custom_commands:
         ctx.send(f"!{cmd_name} is already a command")
@@ -82,7 +82,7 @@ async def new_command(ctx, cmd_name: str, cmd_response: str):
 # Command to remove a custom command, if it exists
 # Can only be done by people with the Admin role
 @bot.command(name='remove_command', help='Remove a custom command. Usage: !remove_command <command name>')
-@command.has_role('Admin')
+@commands.has_role('Admin')
 async def remove_command(ctx, cmd_name: str):
     if cmd_name not in custom_commands:
         ctx.send(f"!{cmd_name} is not a command")
