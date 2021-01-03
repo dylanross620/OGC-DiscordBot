@@ -7,4 +7,4 @@ Additionally, there must be a file named 'discord_token.env' that just contains 
 that should contain the Twitch bot's OAuth token and Client ID on the first and second lines respectively.
 
 ## Running
-To run the bot, perform setup if you have not already. Once setup is completed run ```python bot.py```
+To run the bot, perform setup if you have not already. Once setup is completed run ```python main.py```
