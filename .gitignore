@@ -1,2 +1,2 @@
-token.env
-custom.commands
+*.env
+__pycache__
