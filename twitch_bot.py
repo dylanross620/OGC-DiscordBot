@@ -45,6 +45,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def do_command(self, e, cmd, tags):
         c = self.connection
 
+        is_admin = 'broadcaster' in tags['badges'] or 'admin' in tags['badges']
+
         if cmd == 'join':
             if not self.queue.sub_only or 'subscriber' in tags['badges']:
                 pos = self.queue.push(tags['display-name'])
@@ -69,9 +71,21 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 self.send_message(f"Current queue: {s}")
 
-        elif cmd == 'shutdown' and 'broadcaster' in tags['badges'] or 'admin' in tags['badges']:
+        elif cmd == 'shutdown' and is_admin:
             self.send_message('Shutting down')
             self.die('')
+
+        elif cmd == 'next' and is_admin:
+            name = self.queue.pop()
+
+            if name is None:
+                self.send_message('The queue is empty')
+            else:
+                self.send_message(f"Up next: {name}")
+
+        elif cmd == 'clear' and is_admin:
+            self.queue.clear()
+            self.send_message('The queue has successfully been cleared')
 
         # The command was not recognized
         else:
