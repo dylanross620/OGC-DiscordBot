@@ -8,15 +8,18 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX)
 
 # Command to join the queue, if not already in it
 @bot.command(name='join', help='Joins the current queue')
-@commands.has_any_role('Twitch Subscriber', 'Patron')
 async def join_queue(ctx):
     global queue
 
-    pos = queue.push(ctx.message.author.name)
-    if pos > -1:
-        await ctx.send(f"{ctx.message.author.mention} has been added to the queue at position {pos}")
+    roles = [str(role) for role in ctx.message.author.roles] # get a list of the names of all roles the the message author
+    if not queue.sub_only or 'Twitch Subscriber' in roles or 'Patron' in roles:
+        pos = queue.push(ctx.message.author.name)
+        if pos > -1:
+            await ctx.send(f"{ctx.message.author.mention} has been added to the queue at position {pos}")
+        else:
+            await ctx.send(f"{ctx.message.author.mention} is already in the queue")
     else:
-        await ctx.send(f"{ctx.message.author.mention} is already in the queue")
+        await ctx.send(f"{ctx.message.author.mention} only Twitch subscribers and Patrons can join this queue")
 
 # Command to leave the queue, if in it
 @bot.command(name='leave', help='Leaves the current queue')

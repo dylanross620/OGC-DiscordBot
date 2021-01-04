@@ -5,7 +5,8 @@ from typing import Union
 from threading import Lock, Thread
 
 class GameQueue():
-    def __init__(self):
+    def __init__(self, sub_only):
+        self.sub_only = sub_only
         self.queue = []
         self.lock = Lock()
 
@@ -57,7 +58,8 @@ class GameQueue():
             return ', '.join(self.queue)
 
 if __name__ == '__main__':
-    queue = GameQueue()
+    sub_only = input('Is this queue for subscribers/patrons only? [y/n] ')
+    queue = GameQueue(sub_only.lower()[0] == 'y')
 
     twitch_thread = Thread(target=twitch_bot.start, args=(queue,))
     twitch_thread.start()

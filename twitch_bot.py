@@ -46,7 +46,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         c = self.connection
 
         if cmd == 'join':
-            if 'subscriber' in tags['badges']:
+            if not self.queue.sub_only or 'subscriber' in tags['badges']:
                 pos = self.queue.push(tags['display-name'])
                 if pos == -1:
                     self.send_message(f"@{tags['display-name']} is already in the queue")
