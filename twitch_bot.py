@@ -5,10 +5,9 @@ NAME = 'Radnor0'
 OWNER = 'Radnor0'
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, username, client_id, token, channel, queue):
+    def __init__(self, username, token, channel, queue):
         self.queue = queue
 
-        self.client_id = client_id
         self.token = token
         self.channel = '#' + channel
 
@@ -93,13 +92,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
 def start(queue):
     # Try to load token and client_id from 'twitch_token.env' file
-    token, client_id = None, None
+    token = None
     with open('twitch_token.env', 'r') as f:
-        token, client_id = f.read().splitlines()
-    assert token is not None and client_id is not None, 'Error loading twitch token and client id from twitch_token.env'
+        token = f.readline().strip()
+    assert token is not None, 'Error loading twitch token and client id from twitch_token.env'
 
     username = NAME
     channel = OWNER.lower()
 
-    bot = TwitchBot(username, client_id, token, channel, queue)
+    bot = TwitchBot(username, token, channel, queue)
     bot.start()
