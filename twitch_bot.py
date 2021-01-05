@@ -1,8 +1,8 @@
 import irc.bot
 import requests
 
-NAME = 'ClossiBot'
-OWNER = 'Clossius'
+NAME = 'Radnor0'
+OWNER = 'Radnor0'
 
 admin_badges = set(['broadcaster', 'admin'])
 supporter_badges = set(admin_badges.union(['subscriber']))
@@ -115,10 +115,26 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.send_message('The queue has successfully been cleared')
 
         elif cmd == 'userlevel' and is_admin:
+            if len(args) == 0:
+                self.send_message('Command userlevel requires an argument')
+                return
+
             if self.queue.set_user_level(args[0].upper()):
                 self.send_message(f'Successfully set the user level to {args[0]}')
             else:
                 self.send_message(f"Invalid user level {args[0]}")
+        
+        # Command for an admin to override userlevel and add a user
+        elif cmd == 'add' and is_admin:
+            if len(args) == 0:
+                self.send_message('Command add requires an argument')
+                return
+
+            pos = self.queue.push(args[0])
+            if pos == -1:
+                self.send_message(f"{args[0]} is already in the queue")
+            else:
+                self.send_message(f"{args[0]} has been added to the queue at position {pos}")
 
 def start(queue):
     # Try to load token and client_id from 'twitch_token.env' file

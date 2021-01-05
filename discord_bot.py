@@ -118,6 +118,19 @@ async def user_level(ctx, level: str):
     else:
         await ctx.send(f"Invalid user level {level}")
 
+# Command to add a user to the queue regardless of user level
+@bot.command(name='add', help='Add player to queue regardless of current user level')
+@commands.has_any_role(*admin_roles)
+async def add(ctx, name: str):
+    global queue
+
+    pos = queue.push(name)
+
+    if pos == -1:
+        await ctx.send(f"{name} is already in the queue")
+    else:
+        await ctx.send(f"{name} has been added to the queue at position {pos}")
+
 # Error message for unknown commands
 @bot.event
 async def on_command_error(ctx, error):

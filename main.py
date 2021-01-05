@@ -12,7 +12,6 @@ class GameQueue():
         self.print_limit = 10
 
         self.user_level = UserLevel.SUPPORTER if sub_only else UserLevel.EVERYONE
-        print(self.user_level.name)
         self.queue = []
         self.lock = Lock()
 
