@@ -1,5 +1,4 @@
 import irc.bot
-import requests
 
 NAME = 'ClossiBot'
 OWNER = 'Clossius'
