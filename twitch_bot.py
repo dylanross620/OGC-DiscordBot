@@ -1,8 +1,8 @@
 import irc.bot
 import requests
 
-NAME = 'clossibot'
-OWNER = 'Radnor0'
+NAME = 'ClossiBot'
+OWNER = 'Clossius'
 
 admin_badges = set(['broadcaster', 'admin'])
 supporter_badges = set(admin_badges.union(['subscriber']))
@@ -37,7 +37,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_pubmsg(self, c, e):
         # Clean up tags before using them
         tags = {kvpair['key']: kvpair['value'] for kvpair in e.tags}
-        if tags['badges'] is None:
+        if 'badges' not in tags or tags['badges'] is None:
             tags['badges'] = ''
 
         # If a chat message starts with an exclamation point, try to run it as a command

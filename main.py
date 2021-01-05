@@ -30,6 +30,14 @@ class GameQueue():
                 return True
             return False
 
+    # Method to find a user's position in the queue. Returns -1 if user not found
+    def user_pos(self, user: str) -> int:
+        with self.lock:
+            try:
+                return self.queue.index(user)
+            except:
+                return -1
+
     # Method to push a name to the end of the queue, if it is not already in it.
     # Returns the length of the queue if added, or -1 if it was already there
     def push(self, name: str) -> int:
