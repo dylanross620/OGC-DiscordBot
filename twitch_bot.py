@@ -1,7 +1,7 @@
 import irc.bot
 import requests
 
-NAME = 'Radnor0'
+NAME = 'clossibot'
 OWNER = 'Radnor0'
 
 class TwitchBot(irc.bot.SingleServerIRCBot):
@@ -85,10 +85,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         elif cmd == 'clear' and is_admin:
             self.queue.clear()
             self.send_message('The queue has successfully been cleared')
-
-        # The command was not recognized
-        else:
-            self.send_message("Unknown command " + cmd)
 
 def start(queue):
     # Try to load token and client_id from 'twitch_token.env' file
