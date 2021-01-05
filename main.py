@@ -34,7 +34,7 @@ class GameQueue():
     def user_pos(self, user: str) -> int:
         with self.lock:
             try:
-                return self.queue.index(user)
+                return self.queue.index(user) + 1
             except:
                 return -1
 
