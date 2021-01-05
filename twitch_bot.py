@@ -131,14 +131,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 self.send_message('Usage: !promote username position(optional)')
 
-        elif cmd == 'add' and is_admin:
-            if len(args) == 1:
-                pos = self.queue.push(args[0])
-                if pos == -1:
-                    self.send_message(f"@{args[0]} is already in the queue")
-                else:
-                    self.send_message(f"@{args[0]} was successfully added to the queue at position {pos}")
-
         elif cmd == 'clear' and is_admin:
             self.queue.clear()
             self.send_message('The queue has successfully been cleared')
