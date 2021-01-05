@@ -37,6 +37,8 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def on_pubmsg(self, c, e):
         # Clean up tags before using them
         tags = {kvpair['key']: kvpair['value'] for kvpair in e.tags}
+        if 'badges' not in tags:
+            tags['badges'] = ''
 
         # If a chat message starts with an exclamation point, try to run it as a command
         if e.arguments[0][:1] == '!':
