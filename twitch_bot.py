@@ -1,8 +1,8 @@
 import irc.bot
 import requests
 
-NAME = 'Radnor0'
-OWNER = 'Radnor0'
+NAME = 'ClossiBot'
+OWNER = 'Clossius'
 
 admin_badges = set(['broadcaster', 'admin'])
 supporter_badges = set(admin_badges.union(['subscriber']))
