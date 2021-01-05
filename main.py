@@ -6,6 +6,8 @@ from threading import Lock, Thread
 
 class GameQueue():
     def __init__(self, sub_only):
+        self.print_limit = 10
+
         self.sub_only = sub_only
         self.queue = []
         self.lock = Lock()
@@ -55,6 +57,8 @@ class GameQueue():
     # Method to generate a comma separated list of the current queue
     def __str__(self) -> str:
         with self.lock:
+            if len(self.queue) > self.print_limit:
+                return ', '.join(self.queue[:self.print_limit]) + f",+{len(self.queue)-self.print_limit} more..."
             return ', '.join(self.queue)
 
 if __name__ == '__main__':
