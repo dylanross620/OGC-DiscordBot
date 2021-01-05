@@ -1,5 +1,8 @@
 from discord.ext import commands
 
+admin_roles = set(['Admin', 'mod'])
+supporter_roles = set(admin_roles.union(['Twitch Subscriber', 'Patron']))
+
 # Initialize bot
 COMMAND_PREFIX = '!'
 bot = commands.Bot(command_prefix=COMMAND_PREFIX)
@@ -12,7 +15,17 @@ async def join_queue(ctx):
     global queue
 
     roles = [str(role) for role in ctx.message.author.roles] # get a list of the names of all roles the the message author
-    if not queue.sub_only or 'Twitch Subscriber' in roles or 'Patron' in roles:
+
+    # Check if message author has required roles to join queue
+    allowed = False
+    if queue.user_level.name == 'EVERYONE':
+        allowed = True
+    elif queue.user_level.name == 'SUPPORTER':
+        allowed = len(supporter_roles.intersection(roles)) > 0
+    else:
+        allowed = len(admin_roles.intersection(roles)) > 0
+
+    if allowed:
         pos = queue.push(ctx.message.author.name)
         if pos > -1:
             await ctx.send(f"{ctx.message.author.mention} has been added to the queue at position {pos}")
@@ -44,7 +57,7 @@ async def print_queue(ctx):
 
 # Command to get the next person in the queue. Can only be done by people with the Admin role
 @bot.command(name='next', help='Gets the next player in the queue. Can only be used by admins')
-@commands.has_role('Admin')
+@commands.has_any_role(*admin_roles)
 async def next_player(ctx):
     global queue
 
@@ -56,7 +69,7 @@ async def next_player(ctx):
 
 # Command to clear the queue
 @bot.command(name='clear', help='Clears the queue. Can only be used by admins')
-@commands.has_role('Admin')
+@commands.has_any_role(*admin_roles)
 async def clear_queue(ctx):
     global queue
 
@@ -71,18 +84,29 @@ async def list_commands(ctx):
 
 # Command to list the available commands for admins
 @bot.command(name='admin_commands', help='List all admin commands')
-@commands.has_role('Admin')
+@commands.has_any_role(*admin_roles)
 async def admin_commands(ctx):
     commands = '!next, !clear, !shutdown'
     await ctx.send(f'Current admin command options are: {commands}')
 
 # Command to easily shutdown the bot
 @bot.command(name='shutdown')
-@commands.has_role('Admin')
+@commands.has_any_role(*admin_roles)
 async def close(ctx):
     await ctx.send('Shutting down')
     await ctx.bot.close()
     print('Discord bot shutdown')
+
+# Command to set the userlevel of the queue
+@bot.command(name='userlevel')
+@commands.has_any_role(*admin_roles)
+async def user_level(ctx, level: str):
+    global queue
+
+    if queue.set_user_level(level.upper()):
+        await ctx.send(f"Successfully set user level to {level}")
+    else:
+        await ctx.send(f"Invalid user level {level}")
 
 # Error message for unknown commands
 @bot.event
@@ -90,10 +114,6 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         cmd = ctx.message.content.split(' ')[0]
         await ctx.send(f"Unknown command: {cmd}")
-
-    elif isinstance(error, commands.MissingAnyRole):
-        await ctx.send('Only Twitch subscribers and Patrons can join the queue')
-
     else:
         # The error isn't expected, so propogate it
         raise error

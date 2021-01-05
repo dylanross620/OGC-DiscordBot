@@ -3,14 +3,32 @@ import twitch_bot
 
 from typing import Union
 from threading import Lock, Thread
+from enum import Enum
+
+UserLevel = Enum('UserLevel', 'MOD SUPPORTER EVERYONE')
 
 class GameQueue():
     def __init__(self, sub_only):
         self.print_limit = 10
 
-        self.sub_only = sub_only
+        self.user_level = UserLevel.SUPPORTER if sub_only else UserLevel.EVERYONE
+        print(self.user_level.name)
         self.queue = []
         self.lock = Lock()
+
+    # Method to set the queue's user level using a string, returning whether or not it was done successfully
+    def set_user_level(self, level: str) -> bool:
+        with self.lock:
+            if level == 'MOD':
+                self.user_level = UserLevel.MOD
+                return True
+            if level == 'SUPPORTER':
+                self.user_level = UserLevel.SUPPORTER
+                return True
+            if level == 'EVERYONE':
+                self.user_level = UserLevel.EVERYONE
+                return True
+            return False
 
     # Method to push a name to the end of the queue, if it is not already in it.
     # Returns the length of the queue if added, or -1 if it was already there

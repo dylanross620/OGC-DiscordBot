@@ -4,6 +4,9 @@ import requests
 NAME = 'clossibot'
 OWNER = 'Radnor0'
 
+admin_badges = set(['broadcaster', 'admin'])
+supporter_badges = set(admin_badges.union(['subscriber']))
+
 class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channel, queue):
         self.queue = queue
@@ -37,17 +40,33 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         # If a chat message starts with an exclamation point, try to run it as a command
         if e.arguments[0][:1] == '!':
-            cmd = e.arguments[0].split(' ')[0][1:]
-            self.do_command(e, cmd, tags)
+            args = e.arguments[0].split(' ')
+            cmd = args[0][1:]
+            if len(args) > 1:
+                args = args[1:]
+            else:
+                args = []
+            self.do_command(e, cmd, args, tags)
         return
 
-    def do_command(self, e, cmd, tags):
+    def do_command(self, e, cmd, args, tags):
         c = self.connection
 
-        is_admin = 'broadcaster' in tags['badges'] or 'admin' in tags['badges']
+        is_admin = False
+        for b in admin_badges:
+            if b in tags['badges']:
+                is_admin = True
+                break
+
+        can_join = is_admin or self.queue.user_level.name == 'EVERYONE'
+        if not can_join and self.queue.user_level.name == 'SUPPORTER': # No need to check if subscriber if already can join queue
+            for b in supporter_badges:
+                if b in tags['badges']:
+                    can_join = True
+                    break
 
         if cmd == 'join':
-            if not self.queue.sub_only or 'subscriber' in tags['badges']:
+            if can_join:
                 pos = self.queue.push(tags['display-name'])
                 if pos == -1:
                     self.send_message(f"@{tags['display-name']} is already in the queue")
@@ -85,6 +104,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         elif cmd == 'clear' and is_admin:
             self.queue.clear()
             self.send_message('The queue has successfully been cleared')
+
+        elif cmd == 'userlevel' and is_admin:
+            if self.queue.set_user_level(args[0].upper()):
+                self.send_message(f'Successfully set the user level to {args[0]}')
+            else:
+                self.send_message(f"Invalid user level {args[0]}")
 
 def start(queue):
     # Try to load token and client_id from 'twitch_token.env' file
