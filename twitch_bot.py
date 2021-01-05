@@ -77,6 +77,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 self.send_message(f"@{tags['display-name']} only subscribers can join the queue from Twitch chat")
 
+        if cmd == 'pos':
+            pos = self.queue.user_pos(tags['display-name'])
+            if pos == -1:
+                self.send_message(f"@{tags['display-name']} is not in the queue")
+            else:
+                self.send_message(f"@{tags['display-name']} is in the queue at position {pos}")
+
         elif cmd == 'leave':
             if self.queue.remove(tags['display-name']):
                 self.send_message(f"@{tags['display-name']} has been removed from the queue")

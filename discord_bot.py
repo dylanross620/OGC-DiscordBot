@@ -34,6 +34,16 @@ async def join_queue(ctx):
     else:
         await ctx.send(f"{ctx.message.author.mention} only Twitch subscribers and Patrons can join this queue")
 
+@bot.command(name='pos', help='Get current position in the queue')
+async def get_pos(ctx):
+    global queue
+
+    pos = queue.user_pos(ctx.message.author.name)
+    if pos == -1:
+        await ctx.send(f"{ctx.message.author.mention} is not in the queue")
+    else:
+        await ctx.send(f"{ctx.message.author.mention} is in the queue at position {pos}")
+
 # Command to leave the queue, if in it
 @bot.command(name='leave', help='Leaves the current queue')
 async def leave_queue(ctx):
