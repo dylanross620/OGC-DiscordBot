@@ -77,6 +77,30 @@ async def next_player(ctx):
     else:
         await ctx.send(f"Up next: {player}")
 
+# Command to move someone to a different part of the queue. Can only be done by people with the Admin role
+@bot.command(name='promote', help='Moves a player to a different position in the queue. Can only be used by admins')
+@commands.has_any_role(*admin_roles)
+async def promote_player(ctx, name, position=1):
+    global queue
+
+    success = queue.promote(name, position)
+    if success:
+        await ctx.send(f"{name} is now in position {position} in the queue")
+    else:
+        await ctx.send(f"Unable to update queue")
+
+# Command to add someone else to the queue. Can only be done by people with the Admin role
+@bot.command(name='add', help='Adds specified player to the queue. Can only be used by admins')
+@commands.has_any_role(*admin_roles)
+async def add_player(ctx, name):
+    global queue
+
+    success = queue.push(name)
+    if pos > -1:
+        await ctx.send(f"{name} has been added to the queue at position {pos}")
+    else:
+        await ctx.send(f"{name} is already in the queue")
+
 # Command to clear the queue
 @bot.command(name='clear', help='Clears the queue. Can only be used by admins')
 @commands.has_any_role(*admin_roles)
