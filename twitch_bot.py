@@ -109,6 +109,27 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 self.send_message(f"Up next: {name}")
 
+        elif cmd == 'promote' and is_admin:
+            if len(args) >= 1 and len(args) <= 2:
+                # Set position to 1 if none was specified
+                if len(args) == 1:
+                    position = 1
+                else:
+                    try:
+                        position = int(args[1])
+                    except ValueError:
+                        self.send_message('Position must be a number')
+                        return
+
+                # Pass arguments to queue
+                success = self.queue.promote(args[0], position)
+                if success:
+                    self.send_message(f"{args[0]} is now at position {position} in the queue")
+                else:
+                    self.send_message('Unable to update queue. Make sure user and position were valid')
+            else:
+                self.send_message('Usage: !promote username position(optional)')
+
         elif cmd == 'clear' and is_admin:
             self.queue.clear()
             self.send_message('The queue has successfully been cleared')

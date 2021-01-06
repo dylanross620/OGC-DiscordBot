@@ -74,6 +74,21 @@ class GameQueue():
                 return None
             return self.queue[0]
 
+    # Method to move a name to a different position in the queue. Defaults to position 1 (index 0)
+    # Returns True if the move was successful, otherwise returns False
+    def promote(self, name: str, pos: int = 1) -> bool:
+        with self.lock:
+            if pos > len(self.queue):
+                # out of bounds
+                return False
+
+            try:
+                self.queue.remove(name)
+                self.queue.insert(name, pos - 1)
+                return True
+            except ValueError:
+                return False
+
     # Method to clear the queue
     def clear(self):
         with self.lock:
