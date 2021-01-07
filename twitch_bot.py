@@ -1,7 +1,7 @@
 import irc.bot
 
-NAME = 'ClossiBot'
-OWNER = 'Clossius'
+NAME = 'radnor0'
+OWNER = 'radnor0'
 
 admin_badges = set(['broadcaster', 'moderator'])
 supporter_badges = set(admin_badges.union(['subscriber']))
@@ -155,6 +155,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 self.send_message(f"{args[0]} is already in the queue")
             else:
                 self.send_message(f"{args[0]} has been added to the queue at position {pos}")
+
+        elif cmd == 'queuecommands':
+            self.send_message('The command list can be found at https://github.com/dylanross620/OGC-DiscordBot/blob/master/README.md')
 
 def start(queue):
     # Try to load token and client_id from 'twitch_token.env' file

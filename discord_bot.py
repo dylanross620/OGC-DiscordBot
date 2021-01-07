@@ -99,17 +99,9 @@ async def clear_queue(ctx):
     await ctx.send('The queue has successfully been cleared')
 
 # Command to list the available commands for everyone
-@bot.command(name='commands', help='List all available commands')
+@bot.command(name='queuecommands', help='List all available commands')
 async def list_commands(ctx):
-    commands = '!join, !queue, !leave'
-    await ctx.send(f"Current command options are: {commands}")
-
-# Command to list the available commands for admins
-@bot.command(name='admin_commands', help='List all admin commands')
-@commands.has_any_role(*admin_roles)
-async def admin_commands(ctx):
-    commands = '!next, !clear, !shutdown'
-    await ctx.send(f'Current admin command options are: {commands}')
+    await ctx.send('The commands for this bot can be found at https://github.com/dylanross620/OGC-DiscordBot/blob/master/README.md')
 
 # Command to easily shutdown the bot
 @bot.command(name='shutdown')
