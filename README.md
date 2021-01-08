@@ -29,8 +29,7 @@ In addition to setting up the Discord token, you also must open the file ```disc
 
 ### Twitch Setup
 To setup the Twitch bot, you must first make a Twitch account for your bot to post from (unless you want it to post from your own account). While logged into the
-account the bot will post from, obtain a Twitch tmi token. This will be given in the form `oauth:<your token here>`. Everything after the colon must be saved to
-a file called `twitch_token.env`.
+account the bot will post from, obtain a Twitch tmi token. This token must be saved to a file called `twitch_token.env`.
 
 In addition to setting up the Twitch token, you also must open the file ```twitch_bot.py``` and modify some variables found at the top of the file:
 - `NAME` is the name of the account the bot will be posting from. This should match the name of the account you retrieved your token with.

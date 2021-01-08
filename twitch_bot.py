@@ -10,14 +10,15 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
     def __init__(self, username, token, channel, queue):
         self.queue = queue
 
-        self.token = token
+        if token[:6] != 'oauth:':
+            token = 'oauth:' + token
         self.channel = '#' + channel
 
         # Create IRC bot connection
         server = 'irc.chat.twitch.tv'
         port = 6667
         print('Connecting to ' + server + ' on port ' + str(port) + '...')
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port, 'oauth:'+token)], username, username)
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port, token)], username, username)
 
     def on_welcome(self, c, e):
         print('Joining ' + self.channel)
