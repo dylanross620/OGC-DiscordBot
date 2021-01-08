@@ -77,6 +77,7 @@ class GameQueue():
     # Method to move a name to a different position in the queue. Defaults to position 1 (index 0)
     # Returns True if the move was successful, otherwise returns False
     def promote(self, name: str, pos: int = 1) -> bool:
+        print(f"main: {type(pos)}")
         with self.lock:
             if pos > len(self.queue):
                 # out of bounds
@@ -84,7 +85,7 @@ class GameQueue():
 
             try:
                 self.queue.remove(name)
-                self.queue.insert(name, pos - 1)
+                self.queue.insert(pos - 1, name)
                 return True
             except ValueError:
                 return False

@@ -80,9 +80,10 @@ async def next_player(ctx):
 # Command to move someone to a different part of the queue. Can only be done by people with the Admin role
 @bot.command(name='promote', help='Moves a player to a different position in the queue. Can only be used by admins')
 @commands.has_any_role(*admin_roles)
-async def promote_player(ctx, name, position=1):
+async def promote_player(ctx, name: str, position: int = 1):
     global queue
 
+    print(type(position))
     success = queue.promote(name, position)
     if success:
         await ctx.send(f"{name} is now in position {position} in the queue")
