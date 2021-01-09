@@ -98,6 +98,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 self.send_message(f"Current queue: {s}")
 
+        elif cmd == '101weiqi':
+            self.send_message('Go problems organized by type: https://www.101weiqi.com/spec/')
+
         elif cmd == 'shutdown' and is_admin:
             self.send_message('Shutting down')
             self.die('')
