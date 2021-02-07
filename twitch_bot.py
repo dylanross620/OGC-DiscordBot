@@ -1,7 +1,7 @@
 import irc.bot
 
-NAME = 'ClossiBot'
-OWNER = 'Clossius'
+NAME = 'Radnor0'
+OWNER = 'Radnor0'
 
 admin_badges = set(['broadcaster', 'moderator'])
 supporter_badges = set(admin_badges.union(['subscriber']))
@@ -53,6 +53,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
     def do_command(self, e, cmd, args, tags):
         c = self.connection
+        badges = tags['badges'].split(',')
+
+        tier = ''
 
         is_admin = False
         for b in admin_badges:
@@ -60,22 +63,24 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 is_admin = True
                 break
 
+        for b in badges:
+            if 'subscriber' in b:
+                tier = b[:-1] # Get subscriber level from the end of the badge name
+                break
+
         can_join = is_admin or self.queue.user_level.name == 'EVERYONE'
-        if not can_join and self.queue.user_level.name == 'SUPPORTER': # No need to check if subscriber if already can join queue
-            for b in supporter_badges:
-                if b in tags['badges']:
-                    can_join = True
-                    break
+        can_join |= len(tier) > 0 and self.queue.user_level.name == 'SUPPORTER'
 
         if cmd == 'join':
             if can_join:
-                pos = self.queue.push(tags['display-name'])
+                pos = self.queue.push(tags['display-name'], tier)
                 if pos == -1:
                     self.send_message(f"@{tags['display-name']} is already in the queue")
                 else:
                     self.send_message(f"@{tags['display-name']} was successfully added to the queue at position {pos}")
             else:
-                self.send_message(f"@{tags['display-name']} only subscribers can join the queue from Twitch chat")
+                level_str = 'subscribers' if self.queue.user_level.name == 'SUPPORTER' else 'mods'
+                self.send_message(f"@{tags['display-name']} only {level_str} can join the queue from Twitch chat")
 
         if cmd == 'pos':
             pos = self.queue.user_pos(tags['display-name'])
@@ -103,12 +108,13 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             self.die('')
 
         elif cmd == 'next' and is_admin:
-            name = self.queue.pop()
+            name, tier = self.queue.pop()
 
             if name is None:
                 self.send_message('The queue is empty')
             else:
-                self.send_message(f"Up next: {name}")
+                tier_msg = f' at tier {tier}' if len(tier) > 0 else ''
+                self.send_message(f"Up next: {name}{tier_msg}")
 
         elif cmd == 'promote' and is_admin:
             if len(args) >= 1 and len(args) <= 2:
@@ -151,7 +157,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 self.send_message('Command add requires an argument')
                 return
 
-            pos = self.queue.push(args[0])
+            pos = self.queue.push(args[0], '') # Default to no tier
             if pos == -1:
                 self.send_message(f"{args[0]} is already in the queue")
             else:

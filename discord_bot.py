@@ -1,7 +1,16 @@
 from discord.ext import commands
 
 admin_roles = set(['Admin', 'mod'])
-supporter_roles = set(admin_roles.union(['Twitch Subscriber', 'Patron']))
+supporter_roles = set(admin_roles.union(['Twitch Subscriber', 'Patron', 'Youtube Member']))
+
+# Map to convert the role names to the corresponding tier of support
+roles_to_tiers = {'Twitch Subscriber: Tier 1': 1,
+        'Twitch Subscriber: Tier 2' : 2,
+        'Twitch Subscriber: Tier 3': 3,
+        'Patron': 1,
+        'Patreon Tier 2': 2,
+        'Patreon Tier 3': 3,
+        'YouTube Member: Supporter': 1}
 
 # Initialize bot
 COMMAND_PREFIX = '!'
@@ -16,6 +25,17 @@ async def join_queue(ctx):
 
     roles = [str(role) for role in ctx.message.author.roles] # get a list of the names of all roles the the message author
 
+    # Get highest support tier a person has
+    tier = 0
+    for r in roles:
+        try:
+            cur_tier = roles_to_tiers[r]
+        except:
+            cur_tier = 0
+
+        if cur_tier > tier:
+            tier = cur_tier
+
     # Check if message author has required roles to join queue
     allowed = False
     if queue.user_level.name == 'EVERYONE':
@@ -26,13 +46,13 @@ async def join_queue(ctx):
         allowed = len(admin_roles.intersection(roles)) > 0
 
     if allowed:
-        pos = queue.push(ctx.message.author.name)
+        pos = queue.push(ctx.message.author.name, '' if tier == 0 else str(tier))
         if pos > -1:
             await ctx.send(f"{ctx.message.author.mention} has been added to the queue at position {pos}")
         else:
             await ctx.send(f"{ctx.message.author.mention} is already in the queue")
     else:
-        await ctx.send(f"{ctx.message.author.mention} only Twitch subscribers and Patrons can join this queue")
+        await ctx.send(f"{ctx.message.author.mention} only Twitch subscribers, Patrons, and YouTube Members can join this queue")
 
 @bot.command(name='pos', help='Get current position in the queue')
 async def get_pos(ctx):
@@ -71,11 +91,12 @@ async def print_queue(ctx):
 async def next_player(ctx):
     global queue
 
-    player = queue.pop()
+    player, tier = queue.pop()
     if player is None:
         await ctx.send('The queue is empty')
     else:
-        await ctx.send(f"Up next: {player}")
+        tier_msg = f" at tier {tier}" if len(tier) > 0 else ''
+        await ctx.send(f"Up next: {player}{tier_msg}")
 
 # Command to move someone to a different part of the queue. Can only be done by people with the Admin role
 @bot.command(name='promote', help='Moves a player to a different position in the queue. Can only be used by admins')
@@ -83,7 +104,6 @@ async def next_player(ctx):
 async def promote_player(ctx, name: str, position: int = 1):
     global queue
 
-    print(type(position))
     success = queue.promote(name, position)
     if success:
         await ctx.send(f"{name} is now in position {position} in the queue")
@@ -129,7 +149,7 @@ async def user_level(ctx, level: str):
 async def add(ctx, name: str):
     global queue
 
-    pos = queue.push(name)
+    pos = queue.push(name, '')
 
     if pos == -1:
         await ctx.send(f"{name} is already in the queue")

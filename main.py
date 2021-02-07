@@ -1,7 +1,7 @@
 import discord_bot
 import twitch_bot
 
-from typing import Union
+from typing import Union, Tuple
 from threading import Lock, Thread
 from enum import Enum
 
@@ -32,24 +32,25 @@ class GameQueue():
     # Method to find a user's position in the queue. Returns -1 if user not found
     def user_pos(self, user: str) -> int:
         with self.lock:
-            try:
-                return self.queue.index(user) + 1
-            except:
-                return -1
+            for i, (name, _) in enumerate(self.queue):
+                if name == user:
+                    return i
 
-    # Method to push a name to the end of the queue, if it is not already in it.
+            return -1
+
+    # Method to push a name and tier to the end of the queue, if it is not already in it.
     # Returns the length of the queue if added, or -1 if it was already there
-    def push(self, name: str) -> int:
+    def push(self, name: str, tier: str) -> int:
         with self.lock:
             if name in self.queue:
                 return -1
 
-            self.queue.append(name)
+            self.queue.append((name, tier))
             return len(self.queue)
 
-    # Method to get the next name in the queue and remove it. Returns the name if the queue
-    # is not empty, otherwise returns None
-    def pop(self) -> Union[str, None]:
+    # Method to get the next name in the queue and remove it. Returns the tuple (name, tier)
+    # if the queue is not empty, otherwise returns None
+    def pop(self) -> Union[Tuple[str, str], None]:
         with self.lock:
             if len(self.queue) == 0:
                 return None
@@ -60,15 +61,16 @@ class GameQueue():
     # otherwise returns false
     def remove(self, name: str) -> bool:
         with self.lock:
-            try:
-                self.queue.remove(name)
-                return True
-            except ValueError:
-                return False
+            for i, (n, _) in enumerate(self.queue):
+                if n == name:
+                    self.queue.pop(i)
+                    return True
 
-    # Method to get the next name in the queue without removing it. Returns the name if the queue
-    # is not empty, otherwise returns None
-    def next(self) -> Union[str, None]:
+            return False
+
+    # Method to get the next name and tier in the queue without removing it. Returns the name
+    # if the queue is not empty, otherwise returns None
+    def next(self) -> Union[Tuple[str, str], None]:
         with self.lock:
             if len(self.queue) == 0:
                 return None
@@ -77,18 +79,17 @@ class GameQueue():
     # Method to move a name to a different position in the queue. Defaults to position 1 (index 0)
     # Returns True if the move was successful, otherwise returns False
     def promote(self, name: str, pos: int = 1) -> bool:
-        print(f"main: {type(pos)}")
         with self.lock:
             if pos > len(self.queue):
                 # out of bounds
                 return False
 
-            try:
-                self.queue.remove(name)
-                self.queue.insert(pos - 1, name)
-                return True
-            except ValueError:
-                return False
+            for i, user in enumerate(self.queue):
+                if user[0] == name:
+                    self.queue.pop(pos)
+                    self.queue.insert(pos - 1, user)
+                    return True
+            return False
 
     # Method to clear the queue
     def clear(self):
@@ -99,8 +100,8 @@ class GameQueue():
     def __str__(self) -> str:
         with self.lock:
             if len(self.queue) > self.print_limit:
-                return ', '.join(self.queue[:self.print_limit]) + f",+{len(self.queue)-self.print_limit} more..."
-            return ', '.join(self.queue)
+                return ', '.join([user[0] for user in self.queue[:self.print_limit]]) + f",+{len(self.queue)-self.print_limit} more..."
+            return ', '.join([user[0] for user in self.queue])
 
 if __name__ == '__main__':
     sub_only = input('Is this queue for subscribers/patrons only? [y/n] ')
