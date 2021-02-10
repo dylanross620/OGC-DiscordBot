@@ -65,7 +65,12 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
 
         for b in badges:
             if 'subscriber' in b:
-                tier = b[b.index('/') + 1] # Get subscriber level from the end of the badge name
+                version = b[b.index('/') + 1:]
+                if len(version) > 3:
+                    # Version in form <tier>00<duration>
+                    tier = version[0]
+                else:
+                    tier = '1'
                 break
 
         can_join = is_admin or self.queue.user_level.name == 'EVERYONE'
