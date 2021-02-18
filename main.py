@@ -50,10 +50,10 @@ class GameQueue():
 
     # Method to get the next name in the queue and remove it. Returns the tuple (name, tier)
     # if the queue is not empty, otherwise returns None
-    def pop(self) -> Union[Tuple[str, str], None]:
+    def pop(self) -> Union[Tuple[str, str], Tuple[None, None]]:
         with self.lock:
             if len(self.queue) == 0:
-                return None
+                return (None, None)
 
             return self.queue.pop(0)
 
