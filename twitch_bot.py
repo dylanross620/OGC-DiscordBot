@@ -43,7 +43,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         # If a chat message starts with an exclamation point, try to run it as a command
         if e.arguments[0][:1] == '!':
             args = e.arguments[0].split(' ')
-            cmd = args[0][1:]
+            cmd = args[0][1:].lower()
             if len(args) > 1:
                 args = args[1:]
             else:

@@ -14,7 +14,7 @@ roles_to_tiers = {'Twitch Subscriber: Tier 1': 1,
 
 # Initialize bot
 COMMAND_PREFIX = '!'
-bot = commands.Bot(command_prefix=COMMAND_PREFIX)
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, case_insensitive=True)
 
 # --------------- Bot Commands -------------------------
 
