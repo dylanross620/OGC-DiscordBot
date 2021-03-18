@@ -86,7 +86,7 @@ class GameQueue():
 
             for i, user in enumerate(self.queue):
                 if user[0] == name:
-                    self.queue.pop(pos)
+                    self.queue.pop(i)
                     self.queue.insert(pos - 1, user)
                     return True
             return False
