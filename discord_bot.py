@@ -156,6 +156,17 @@ async def add(ctx, name: str):
     else:
         await ctx.send(f"{name} has been added to the queue at position {pos}")
 
+# Command to remove a player from the queue
+@bot.command(name='remove', help='Remove a player from the queue')
+@commands.has_any_role(*admin_roles)
+async def remove(ctx, name: str):
+    global queue
+
+    if queue.remove(name):
+        await ctx.send(f"{name} has been removed from the queue")
+    else:
+        await ctx.send(f"{name} was not in the queue")
+
 # Error message for unknown commands
 @bot.event
 async def on_command_error(ctx, error):

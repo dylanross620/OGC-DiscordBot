@@ -168,6 +168,17 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
             else:
                 self.send_message(f"{args[0]} has been added to the queue at position {pos}")
 
+        # Command for an admin to remove a user from the queue
+        elif cmd == 'remove' and is_admin:
+            if len(args) == 0:
+                self.send_message('Command remove requires an argument')
+                return
+
+           if self.queue.remove(args[0]):
+               self.send_message(f"{args[0]} has been removed from the queue")
+           else:
+               self.send_message(f"{args[0]} was not in the queue to be removed")
+
         elif cmd == 'queuecommands':
             self.send_message('The command list can be found at https://github.com/dylanross620/OGC-DiscordBot/blob/master/README.md')
 
