@@ -1,7 +1,7 @@
 import irc.bot
 
-NAME = 'ClossiBot'
-OWNER = 'Clossius'
+NAME = 'Radnor0'
+OWNER = 'Radnor0'
 
 admin_badges = set(['broadcaster', 'moderator'])
 supporter_badges = set(admin_badges.union(['subscriber']))
@@ -174,9 +174,9 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
                 self.send_message('Command remove requires an argument')
                 return
 
-           if self.queue.remove(args[0]):
+            if self.queue.remove(args[0]):
                self.send_message(f"{args[0]} has been removed from the queue")
-           else:
+            else:
                self.send_message(f"{args[0]} was not in the queue to be removed")
 
         elif cmd == 'queuecommands':
