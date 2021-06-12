@@ -4,6 +4,7 @@ import twitch_bot
 from typing import Union, Tuple
 from threading import Lock, Thread
 from enum import Enum
+import json
 
 UserLevel = Enum('UserLevel', 'MOD SUPPORTER EVERYONE')
 
@@ -104,10 +105,63 @@ class GameQueue():
             return ', '.join([user[0] for user in self.queue])
 
 if __name__ == '__main__':
+    settings = None
+    try:
+        # Try to load existing settings
+        with open('settings.json', 'r') as f:
+            settings = json.load(f)
+            print('Successfully loaded settings\n')
+    except:
+        # Failed to load settings, so prompt user for them and save to file
+        print('No settings file found')
+
+        twitch_settings = {}
+        twitch_settings['bot_name'] = input('Enter name of the bot on twitch: ')
+        twitch_settings['token'] = input('Enter your twitch TMI token: ')
+        twitch_settings['channel'] = input('Enter name of the twitch channel for the bot to run in: ')
+        print('Using default settings for twitch admin and supporter badges')
+        twitch_settings['admin_badges'] = ['broadcaster', 'moderator']
+        twitch_settings['supporter_badges'] = ['subscriber']
+        can_join = input('Should users be able to join the queue from twitch chat [y/n]? ')
+        twitch_settings['can_join'] = can_join.lower()[0] == 'y'
+
+        disc_settings = {}
+        disc_settings['token'] = input('Enter discord bot token: ')
+        print('Using default settings for discord admin and supporter roles')
+        disc_settings['admin_roles'] = ['Admin', 'mod']
+        disc_settings['supporter_roles'] = ['Twitch Subscriber', 'Patron', 'Youtube Member']
+        print('Using default tier map')
+        disc_settings['tier_map'] = {'Twitch Subscriber: Tier 1': 1,
+                'Twitch Subscriber: Tier 2' : 2,
+                'Twitch Subscriber: Tier 3': 3,
+                'Patron': 1,
+                'Patreon Tier 2': 2,
+                'Patreon Tier 3': 3,
+                'YouTube Member: Supporter': 1}
+        can_join = input('Should users be able to join the queue from discord [y/n]? ')
+        print('Allowing queue to be joinable from all channels')
+        disc_settings['join_channels'] = []
+        disc_settings['can_join'] = can_join.lower()[0] == 'y'
+
+        settings = {'twitch': twitch_settings, 'discord': disc_settings}
+        with open('settings.json', 'w') as f:
+            json.dump(settings, f, indent=4)
+            print('Successfully saved settings to settings.json\n')
+
+    assert settings is not None, 'Error initializing settings'
+
+    # Convert admin roles/badges to sets
+    settings['twitch']['admin_badges'] = set(settings['twitch']['admin_badges'])
+    settings['discord']['admin_roles'] = set(settings['discord']['admin_roles'])
+
+    # Make supporter roles/badges include admins
+    settings['twitch']['supporter_badges'] = settings['twitch']['admin_badges'].union(settings['twitch']['supporter_badges'])
+    settings['discord']['supporter_roles'] = settings['discord']['admin_roles'].union(settings['discord']['supporter_roles'])
+
     sub_only = input('Is this queue for subscribers/patrons only? [y/n] ')
     queue = GameQueue(sub_only.lower()[0] == 'y')
 
-    twitch_thread = Thread(target=twitch_bot.start, args=(queue,))
+    twitch_thread = Thread(target=twitch_bot.start, args=(queue, settings['twitch'],))
     twitch_thread.start()
 
-    discord_bot.start(queue) 
+    discord_bot.start(queue, settings['discord']) 

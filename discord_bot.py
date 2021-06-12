@@ -1,20 +1,25 @@
 from discord.ext import commands
 
-admin_roles = set(['Admin', 'mod'])
-supporter_roles = set(admin_roles.union(['Twitch Subscriber', 'Patron', 'Youtube Member']))
-
-# Map to convert the role names to the corresponding tier of support
-roles_to_tiers = {'Twitch Subscriber: Tier 1': 1,
-        'Twitch Subscriber: Tier 2' : 2,
-        'Twitch Subscriber: Tier 3': 3,
-        'Patron': 1,
-        'Patreon Tier 2': 2,
-        'Patreon Tier 3': 3,
-        'YouTube Member: Supporter': 1}
-
 # Initialize bot
 COMMAND_PREFIX = '!'
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, case_insensitive=True)
+
+
+# --------------- Forward Variable Declarations ---------------
+settings = {'admin_roles': []}
+
+
+# --------------- Helper Functions ---------------
+
+def is_admin(roles, admin_roles) -> bool:
+    for role in roles:
+        if role.name in admin_roles:
+            break
+    else:
+        # User is not an admin, so they can't use this command
+        return False
+
+    return True
 
 # --------------- Bot Commands -------------------------
 
@@ -22,6 +27,15 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX, case_insensitive=True)
 @bot.command(name='join', help='Joins the current queue')
 async def join_queue(ctx):
     global queue
+    global settings
+
+    if not settings['can_join']:
+        await ctx.send(f"{ctx.message.author.mention} this queue cannot be joined from Discord")
+        return
+
+    if len(settings['join_channels']) > 0 and ctx.channel.name not in settings['join_channels']:
+        await ctx.send(f"{ctx.message.author.mention} you must join the queue from an allowed channel")
+        return
 
     roles = [str(role) for role in ctx.message.author.roles] # get a list of the names of all roles the the message author
 
@@ -29,7 +43,7 @@ async def join_queue(ctx):
     tier = 0
     for r in roles:
         try:
-            cur_tier = roles_to_tiers[r]
+            cur_tier = settings['tier_map'][r]
         except:
             cur_tier = 0
 
@@ -41,9 +55,9 @@ async def join_queue(ctx):
     if queue.user_level.name == 'EVERYONE':
         allowed = True
     elif queue.user_level.name == 'SUPPORTER':
-        allowed = len(supporter_roles.intersection(roles)) > 0
+        allowed = len(settings['supporter_roles'].intersection(roles)) > 0
     else:
-        allowed = len(admin_roles.intersection(roles)) > 0
+        allowed = len(settings['admin_roles'].intersection(roles)) > 0
 
     if allowed:
         pos = queue.push(ctx.message.author.name, '' if tier == 0 else str(tier))
@@ -57,6 +71,7 @@ async def join_queue(ctx):
 @bot.command(name='pos', help='Get current position in the queue')
 async def get_pos(ctx):
     global queue
+    global settings
 
     pos = queue.user_pos(ctx.message.author.name)
     if pos == -1:
@@ -68,6 +83,7 @@ async def get_pos(ctx):
 @bot.command(name='leave', help='Leaves the current queue')
 async def leave_queue(ctx):
     global queue
+    global settings
 
     if queue.remove(ctx.message.author.name):
         await ctx.send(f"{ctx.message.author.mention} has been removed from the queue")
@@ -78,6 +94,7 @@ async def leave_queue(ctx):
 @bot.command(name='queue', help='Prints the current queue')
 async def print_queue(ctx):
     global queue
+    global settings
 
     s = str(queue)
     if s == '':
@@ -87,9 +104,12 @@ async def print_queue(ctx):
 
 # Command to get the next person in the queue. Can only be done by people with the Admin role
 @bot.command(name='next', help='Gets the next player in the queue. Can only be used by admins')
-@commands.has_any_role(*admin_roles)
 async def next_player(ctx):
     global queue
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
 
     player, tier = queue.pop()
     if player is None:
@@ -100,9 +120,12 @@ async def next_player(ctx):
 
 # Command to move someone to a different part of the queue. Can only be done by people with the Admin role
 @bot.command(name='promote', help='Moves a player to a different position in the queue. Can only be used by admins')
-@commands.has_any_role(*admin_roles)
 async def promote_player(ctx, name: str, position: int = 1):
     global queue
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
 
     success = queue.promote(name, position)
     if success:
@@ -112,9 +135,12 @@ async def promote_player(ctx, name: str, position: int = 1):
 
 # Command to clear the queue
 @bot.command(name='clear', help='Clears the queue. Can only be used by admins')
-@commands.has_any_role(*admin_roles)
 async def clear_queue(ctx):
     global queue
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
 
     queue.clear()
     await ctx.send('The queue has successfully been cleared')
@@ -126,17 +152,24 @@ async def list_commands(ctx):
 
 # Command to easily shutdown the bot
 @bot.command(name='shutdown')
-@commands.has_any_role(*admin_roles)
 async def close(ctx):
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
+
     await ctx.send('Shutting down')
     await ctx.bot.close()
     print('Discord bot shutdown')
 
 # Command to set the userlevel of the queue
 @bot.command(name='userlevel')
-@commands.has_any_role(*admin_roles)
 async def user_level(ctx, level: str):
     global queue
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
 
     if queue.set_user_level(level.upper()):
         await ctx.send(f"Successfully set user level to {level}")
@@ -145,9 +178,12 @@ async def user_level(ctx, level: str):
 
 # Command to add a user to the queue regardless of user level
 @bot.command(name='add', help='Add player to queue regardless of current user level')
-@commands.has_any_role(*admin_roles)
 async def add(ctx, name: str):
     global queue
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
 
     pos = queue.push(name, '')
 
@@ -158,9 +194,12 @@ async def add(ctx, name: str):
 
 # Command to remove a player from the queue
 @bot.command(name='remove', help='Remove a player from the queue')
-@commands.has_any_role(*admin_roles)
 async def remove(ctx, name: str):
     global queue
+    global settings
+
+    if not is_admin(ctx.author.roles, settings['admin_roles']):
+        return
 
     if queue.remove(name):
         await ctx.send(f"{name} has been removed from the queue")
@@ -178,19 +217,13 @@ async def on_command_error(ctx, error):
         raise error
 
 # -------------- Start ---------------------------------
-def start(game_queue):
+def start(game_queue, settings_orig):
     # Load bot token in from the 'discord_token.env' file
-    TOKEN = None
-
-    print('Loading token')
-    with open('discord_token.env', 'r') as f:
-        TOKEN = f.readline().strip()
-
-    assert TOKEN != None, 'Error reading token from discord_token.env file'
-    print('Successfully loaded token')
-
     global queue
     queue = game_queue
 
+    global settings
+    settings = settings_orig
+
     print('Discord bot loaded successfully')
-    bot.run(TOKEN)
+    bot.run(settings['token'])

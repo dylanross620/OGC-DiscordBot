@@ -1,22 +1,19 @@
 import irc.bot
 
-NAME = 'ClossiBot'
-OWNER = 'Clossius'
-
-admin_badges = set(['broadcaster', 'moderator'])
-supporter_badges = set(admin_badges.union(['subscriber']))
-
 class TwitchBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, username, token, channel, queue):
+    def __init__(self, queue, settings):
         self.queue = queue
+        self.settings = settings
 
+        token = settings['token']
         if token[:6] != 'oauth:':
             token = 'oauth:' + token
-        self.channel = '#' + channel
+        self.channel = '#' + settings['channel'].lower()
 
         # Create IRC bot connection
         server = 'irc.chat.twitch.tv'
         port = 6667
+        username = settings['bot_name']
         print('Connecting to ' + server + ' on port ' + str(port) + '...')
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port, token)], username, username)
 
@@ -58,7 +55,7 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         tier = ''
 
         is_admin = False
-        for b in admin_badges:
+        for b in self.settings['admin_badges']:
             if b in tags['badges']:
                 is_admin = True
                 break
@@ -77,6 +74,10 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         can_join |= len(tier) > 0 and self.queue.user_level.name == 'SUPPORTER'
 
         if cmd == 'join':
+            if not self.settings['can_join']:
+                self.send_message(f"@{tags['display-name']} this queue cannot be joined from Twitch chat")
+                return
+
             if can_join:
                 pos = self.queue.push(tags['display-name'], tier)
                 if pos == -1:
@@ -182,15 +183,6 @@ class TwitchBot(irc.bot.SingleServerIRCBot):
         elif cmd == 'queuecommands':
             self.send_message('The command list can be found at https://github.com/dylanross620/OGC-DiscordBot/blob/master/README.md')
 
-def start(queue):
-    # Try to load token and client_id from 'twitch_token.env' file
-    token = None
-    with open('twitch_token.env', 'r') as f:
-        token = f.readline().strip()
-    assert token is not None, 'Error loading twitch token and client id from twitch_token.env'
-
-    username = NAME
-    channel = OWNER.lower()
-
-    bot = TwitchBot(username, token, channel, queue)
+def start(queue, settings):
+    bot = TwitchBot(queue, settings)
     bot.start()

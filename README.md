@@ -21,21 +21,30 @@ and the Discord server in order to properly shutdown both sides.
 This project uses python 3 and requires the discord.py and the irc modules. This can be installed using pip by using ```pip install -r requirements.txt ```.
 
 ### Discord Setup
-To setup the Discord bot, you first must setup a discord bot account. Upon adding the bot to your server, you should be given a token. That token must be saved to a file called `discord_token.env`.
-
-In addition to setting up the Discord token, you also must open the file ```discord_bot.py``` and modify some variables found at the top of the file:
-- `admin_roles` is a list of roles that belong to queue administrators on your server.
-- `supporter_roles` is a list of roles that belong to supporters on your server.
+To setup the Discord bot, you first must setup a discord bot account. Upon adding the bot to your server, you should be given a token.
 
 ### Twitch Setup
 To setup the Twitch bot, you must first make a Twitch account for your bot to post from (unless you want it to post from your own account). While logged into the
-account the bot will post from, obtain a Twitch tmi token. This token must be saved to a file called `twitch_token.env`.
-
-In addition to setting up the Twitch token, you also must open the file ```twitch_bot.py``` and modify some variables found at the top of the file:
-- `NAME` is the name of the account the bot will be posting from. This should match the name of the account you retrieved your token with.
-- `OWNER` is the Twitch chat that the bot will run in.
-- `admin_badges` is a list of badge names that belong to queue administrators. This can likely be left alone.
-- `supporter_badges` is a list of badge names that belong to stream supporters. This can likely be left alone.
+account the bot will post from, obtain a Twitch TMI token.
 
 ## Running
 To run the bot, perform setup if you have not already. Once setup is completed run ```python main.py```
+
+### Settings
+The bot will prompt you for settings the first time that you run it. These settings can be modified from the `settings.json` file.
+
+Each of the keys are as follows:
+* `twitch` contains the settings for the Twitch bot
+	* `bot_name` is the name of the account the bot will post from
+	* `token` is the Twitch TMI token
+	* `channel` is the name of the channel the bot will run in
+	* `admin_badges` is the list of badges that should count as administrators
+	* `supporter_badges` is the list of badges that should count as supporters. Administrators will always count as supporters as well
+	* `can_join` determines whether or not users can join the queue from Twitch chat
+* `discord` contains the settings for the Discord bot
+	* `token` is the Discord bot token obtained during Discord setup
+	* `admin_roles` is a list of the role names that count as administrators
+	* `supporter_roles` is a list of the role names that count as supporters. Administrators will always count as supporters as well
+	* `tier_map` is a map of roles to their corresponding support tier. Larger numbers correspond to larger support (modeled off of Twitch subscriber tiers)
+	* `join_channels` is a list of channel names where users can join the queue from. If the list is empty, users can join from any channel
+	* `can_join` determines whether or not users can join the queue from Discord
